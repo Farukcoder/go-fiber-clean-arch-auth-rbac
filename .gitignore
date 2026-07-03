@@ -1,0 +1,9 @@
+# Compiled binaries
+backend.exe
+*.exe
+
+# Log files
+storage/logs/*.log
+
+# Environment files
+.env

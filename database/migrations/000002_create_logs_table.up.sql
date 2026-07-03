@@ -1,0 +1,18 @@
+CREATE TABLE IF NOT EXISTS logs (
+    id SERIAL PRIMARY KEY,
+    method VARCHAR(10) NOT NULL,
+    path VARCHAR(255) NOT NULL,
+    status_code INTEGER NOT NULL,
+    duration_ms FLOAT,
+    request_body TEXT,
+    response_body TEXT,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    error_type VARCHAR(100),
+    error_message TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_logs_path ON logs(path);
+CREATE INDEX IF NOT EXISTS idx_logs_status_code ON logs(status_code);
+CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs(created_at);

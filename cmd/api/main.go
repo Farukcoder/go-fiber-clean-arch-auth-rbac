@@ -1,0 +1,66 @@
+package main
+
+import (
+	"context"
+	"log/slog"
+	"time"
+
+	"go-fiber-clean-arch-auth-rbac/database"
+	"go-fiber-clean-arch-auth-rbac/internal/config"
+	"go-fiber-clean-arch-auth-rbac/internal/handler"
+	"go-fiber-clean-arch-auth-rbac/internal/middleware"
+	"go-fiber-clean-arch-auth-rbac/internal/repository"
+	"go-fiber-clean-arch-auth-rbac/internal/router"
+	"go-fiber-clean-arch-auth-rbac/internal/service"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+func main() {
+	config.InitLogger()
+
+	cfg, err := config.Load()
+	if err != nil {
+		slog.Error("Failed to load config", "error", err)
+		return
+	}
+
+	db, err := database.Connect(cfg)
+	if err != nil {
+		slog.Error("Failed to connect to database", "error", err)
+		return
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		slog.Error("Failed to get database handle", "error", err)
+		return
+	}
+	defer sqlDB.Close()
+
+	userRepo := repository.NewUserRepository(db)
+	rbacRepo := repository.NewRBACRepository(db)
+	refreshTokenRepo := repository.NewRefreshTokenRepository(db)
+	requestLogRepo := repository.NewRequestLogRepository(db)
+	rbacService := service.NewRBACService(rbacRepo)
+	if err := rbacService.Reload(context.Background()); err != nil {
+		slog.Error("Failed to load RBAC cache", "error", err)
+		return
+	}
+	rbacService.StartAutoReload(context.Background(), 5*time.Minute)
+	authService := service.NewAuthService(userRepo, rbacRepo, refreshTokenRepo, cfg.JwtSecret, cfg.JwtRefreshSecret)
+	authHandler := handler.NewAuthHandler(authService)
+	logsHandler := handler.NewLogsHandler(requestLogRepo)
+	rbacHandler := handler.NewRBACHandler(rbacService)
+
+	app := fiber.New()
+	app.Use(middleware.CORS(cfg.AllowedOrigins))
+	app.Use(middleware.SecurityHeaders(cfg.AppEnv))
+	app.Use(middleware.RequestLogger(requestLogRepo))
+	router.Setup(app, authHandler, logsHandler, rbacHandler, rbacService, cfg)
+
+	slog.Info("Server starting", "port", cfg.Port)
+	if err := app.Listen(":" + cfg.Port); err != nil {
+		slog.Error("Server error", "error", err)
+	}
+}
