@@ -251,7 +251,6 @@
               "path": [
                 "api",
                 "v1",
-                "admin",
                 "roles"
               ]
             }
@@ -289,7 +288,6 @@
               "path": [
                 "api",
                 "v1",
-                "admin",
                 "roles"
               ]
             }
@@ -356,7 +354,6 @@
               "path": [
                 "api",
                 "v1",
-                "admin",
                 "roles",
                 "1"
               ]
@@ -386,7 +383,6 @@
               "path": [
                 "api",
                 "v1",
-                "admin",
                 "permissions"
               ]
             }
@@ -424,7 +420,6 @@
               "path": [
                 "api",
                 "v1",
-                "admin",
                 "permissions"
               ]
             }
@@ -462,7 +457,6 @@
               "path": [
                 "api",
                 "v1",
-                "admin",
                 "permissions",
                 "1"
               ]
@@ -492,7 +486,6 @@
               "path": [
                 "api",
                 "v1",
-                "admin",
                 "permissions",
                 "1"
               ]
@@ -531,7 +524,6 @@
               "path": [
                 "api",
                 "v1",
-                "admin",
                 "roles",
                 "1",
                 "permissions"
@@ -562,7 +554,6 @@
               "path": [
                 "api",
                 "v1",
-                "admin",
                 "roles",
                 "1",
                 "permissions",
@@ -603,7 +594,6 @@
               "path": [
                 "api",
                 "v1",
-                "admin",
                 "users",
                 "1",
                 "role"
