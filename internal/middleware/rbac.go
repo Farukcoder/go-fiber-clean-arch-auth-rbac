@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"go-fiber-clean-arch-auth-rbac/internal/service"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/service"
 	"github.com/gofiber/fiber/v2"
 )
 

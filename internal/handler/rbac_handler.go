@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"go-fiber-clean-arch-auth-rbac/internal/domain"
-	"go-fiber-clean-arch-auth-rbac/internal/dto"
-	"go-fiber-clean-arch-auth-rbac/internal/service"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/domain"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/dto"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/service"
 	"github.com/gofiber/fiber/v2"
+	jwt "github.com/golang-jwt/jwt/v5"
 )
 
 type RBACHandler struct {
@@ -87,7 +88,7 @@ func (h *RBACHandler) CreatePermission(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(dto.ErrorResponse(http.StatusBadRequest, "invalid request payload", nil))
 	}
 
-	permission, err := h.service.CreatePermission(context.Background(), domain.Permission{Name: input.Name, Method: input.Method, Path: input.Path, Description: input.Description})
+	permission, err := h.service.CreatePermission(context.Background(), domain.Permission{Name: input.Name, Module: input.Module, Method: input.Method, Path: input.Path, Description: input.Description})
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(dto.ErrorResponse(http.StatusBadRequest, err.Error(), nil))
 	}
@@ -106,7 +107,7 @@ func (h *RBACHandler) UpdatePermission(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(dto.ErrorResponse(http.StatusBadRequest, "invalid request payload", nil))
 	}
 
-	permission, err := h.service.UpdatePermission(context.Background(), permissionID, domain.Permission{Name: input.Name, Method: input.Method, Path: input.Path, Description: input.Description})
+	permission, err := h.service.UpdatePermission(context.Background(), permissionID, domain.Permission{Name: input.Name, Module: input.Module, Method: input.Method, Path: input.Path, Description: input.Description})
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(dto.ErrorResponse(http.StatusBadRequest, err.Error(), nil))
 	}
@@ -179,4 +180,38 @@ func (h *RBACHandler) AssignRoleToUser(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusOK).JSON(dto.SuccessResponse(http.StatusOK, "Role assigned to user successfully", nil))
+}
+
+func (h *RBACHandler) GetUserPermissions(c *fiber.Ctx) error {
+	token, ok := c.Locals("user").(*jwt.Token)
+	if !ok {
+		return c.Status(http.StatusUnauthorized).JSON(dto.ErrorResponse(http.StatusUnauthorized, "unauthorized", nil))
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+	roleIDFloat, ok := claims["role_id"].(float64)
+	if !ok {
+		return c.Status(http.StatusBadRequest).JSON(dto.ErrorResponse(http.StatusBadRequest, "invalid role id in token", nil))
+	}
+
+	permissions, err := h.service.GetRolePermissions(context.Background(), int64(roleIDFloat))
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(dto.ErrorResponse(http.StatusInternalServerError, "failed to retrieve permissions", nil))
+	}
+
+	return c.Status(http.StatusOK).JSON(dto.SuccessResponse(http.StatusOK, "Permissions retrieved successfully", permissions))
+}
+
+func (h *RBACHandler) GetRolePermissions(c *fiber.Ctx) error {
+	roleID, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(dto.ErrorResponse(http.StatusBadRequest, "invalid role id", nil))
+	}
+
+	permissions, err := h.service.GetRolePermissions(context.Background(), roleID)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(dto.ErrorResponse(http.StatusInternalServerError, "failed to retrieve permissions", nil))
+	}
+
+	return c.Status(http.StatusOK).JSON(dto.SuccessResponse(http.StatusOK, "Permissions retrieved successfully", permissions))
 }

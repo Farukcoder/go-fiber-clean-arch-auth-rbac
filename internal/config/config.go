@@ -51,7 +51,7 @@ func Load() (*Config, error) {
 		DBSSLMode:        getEnv("DB_SSLMODE", "disable"),
 		JwtSecret:        os.Getenv("JWT_SECRET"),
 		JwtRefreshSecret: os.Getenv("JWT_REFRESH_SECRET"),
-		AllowedOrigins:   getEnv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173"),
+		AllowedOrigins:   getEnv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173,http://localhost:5174"),
 		MailMailer:       getEnv("MAIL_MAILER", "smtp"),
 		MailHost:         getEnv("MAIL_HOST", "smtp.gmail.com"),
 		MailPort:         getEnv("MAIL_PORT", "587"),

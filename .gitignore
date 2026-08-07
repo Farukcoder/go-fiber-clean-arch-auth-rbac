@@ -1,9 +1,4 @@
-# Compiled binaries
-backend.exe
+
+storage/logs/
+storage/uploads/
 *.exe
-
-# Log files
-storage/logs/*.log
-
-# Environment files
-.env

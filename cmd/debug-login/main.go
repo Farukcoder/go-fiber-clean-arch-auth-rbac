@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log/slog"
 
-	"go-fiber-clean-arch-auth-rbac/database"
-	"go-fiber-clean-arch-auth-rbac/internal/config"
-	"go-fiber-clean-arch-auth-rbac/internal/dto"
-	"go-fiber-clean-arch-auth-rbac/internal/repository"
-	"go-fiber-clean-arch-auth-rbac/internal/service"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/database"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/config"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/dto"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/repository"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/service"
 )
 
 func main() {

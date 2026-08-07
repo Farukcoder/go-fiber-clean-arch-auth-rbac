@@ -1,402 +1,213 @@
 # Go Fiber Clean Architecture Auth & RBAC Backend
 
-A production-ready Go backend using Fiber framework with clean architecture. Features JWT authentication, role-based access control (RBAC), refresh token rotation, PostgreSQL database, request logging, rate limiting, security hardening, database migrations, and automated seeders.
+A production-ready Go backend built with Fiber, PostgreSQL, JWT authentication, RBAC permissions, request logging, and security middleware. The project follows a clean architecture split across handlers, services, repositories, routers, and database migrations.
 
-## ✨ Features
+## Features
 
-- **JWT Authentication** - Secure token-based authentication with refresh token rotation
-- **Role-Based Access Control (RBAC)** - Granular permission management with roles and permissions
-- **Clean Architecture** - Organized layered structure for maintainability and scalability
-- **PostgreSQL Integration** - Robust database with migration and seeding support
-- **Request Logging** - Comprehensive request/response logging with database persistence
-- **Rate Limiting** - Built-in rate limiter to prevent abuse
-- **Security Middleware** - CORS, CSRF protection, and security hardening
-- **Database Migrations** - Version-controlled schema management
-- **Automated Seeders** - Demo data and RBAC setup
+- JWT authentication with access and refresh tokens
+- Role-based access control with permissions and role assignment
+- PostgreSQL persistence with migrations and seeders
+- Request logging stored in the database
+- Rate limiting and security headers middleware
+- Static uploads serving from the local storage folder
 
-## 📚 Tech Stack
+## Tech Stack
 
-- **Framework**: Fiber (Express-like Go web framework)
-- **Database**: PostgreSQL 12+
-- **Authentication**: JWT (JSON Web Tokens)
-- **Language**: Go 1.25+
-- **Migration Tool**: golang-migrate
+- Go 1.25.11
+- Fiber v2
+- PostgreSQL + pgx
+- GORM
+- golang-migrate
+- JWT + bcrypt
 
-## Directory Structure
+## Project Structure
 
-```
-backend/
-├── cmd/
-│   ├── api/                  # Main HTTP server entrypoint
-│   ├── migrate/              # Migration tool entrypoint
-│   ├── seed/                 # Seeder tool entrypoint
-│   ├── debug/                # Debug script
-│   └── debug-login/          # Login flow debug script
-│
-├── internal/                 # Private application and business logic
-│   ├── config/               # App configuration logic
-│   ├── domain/               # Domain model structs (RequestLog, User, Role, etc.)
-│   ├── dto/                  # Data Transfer Objects & validation
-│   ├── handler/              # HTTP request handlers (controllers)
-│   ├── middleware/           # HTTP middleware logic
-│   ├── repository/           # Data repository layer (database operations)
-│   ├── router/               # Route setup & permission definitions
-│   └── service/              # Business logic services
-│
-├── database/                 # SQL migrations and database connection setup
-│   ├── migrations/           # SQL migration files
-│   └── database.go           # Database connection logic
-│
-├── pkg/                      # Shared helper packages
-│   └── httpclient/           # External HTTP client wrappers
-│
-├── storage/                  # Local filesystem storage / logs
-├── .env                      # Local configuration file (not committed)
-├── .env.example              # Example configuration template
-├── go.mod                    # Go module dependencies
-└── go.sum                    # Go module checksums
+```text
+cmd/
+  api/           # HTTP server entrypoint
+  migrate/       # Database migration CLI
+  seed/          # Seeder CLI
+  debug/         # General debugging utilities
+  debug-login/   # Login flow debugging
+
+internal/
+  config/        # Environment configuration and logger setup
+  domain/        # Core domain models
+  dto/           # Request/response DTOs and validation helpers
+  handler/       # HTTP handlers
+  middleware/    # Auth, logging, RBAC, and security middleware
+  repository/    # Database access layer
+  router/        # Route registration and permission definitions
+  service/       # Business logic
+
+database/
+  migrations/    # SQL migration files
+  seed/          # Seeders for roles, permissions, and users
 ```
 
-## 🔌 API Endpoints
+## Prerequisites
 
-### Authentication Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|----------------|
-| POST | `/api/v1/auth/login` | User login with email/password | ❌ |
-| POST | `/api/v1/auth/refresh` | Refresh access and refresh tokens | ✅ |
-| POST | `/api/v1/auth/logout` | Revoke the current refresh token | ✅ |
-| GET | `/api/v1/me` | Get current authenticated user | ✅ |
-
-### RBAC Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|----------------|
-| GET | `/api/v1/roles` | List all roles | ✅ |
-| GET | `/api/v1/permissions` | List all permissions | ✅ |
-| POST | `/api/v1/users/:id/roles` | Assign role to user | ✅ |
-
-### Logging Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|----------------|
-| GET | `/api/v1/logs` | Retrieve request logs | ✅ |
-
-### Standard Response Format
-
-All API responses follow this consistent structure:
-
-```json
-{
-  "status": true,
-  "status_code": 200,
-  "message": "Success message here",
-  "data": {
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "token_type": "Bearer",
-    "expires_in": 900
-  }
-}
-```
-
-### Error Response Format
-
-```json
-{
-  "status": false,
-  "status_code": 400,
-  "message": "Error description",
-  "data": null
-}
-```
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Go 1.25 or higher
-- PostgreSQL 12 or higher
+- Go 1.25.11 or newer
+- PostgreSQL 12+ (or a compatible server)
 - Git
-- (Optional) Postman for API testing
+- A `.env` file based on `.env.example`
 
-### Installation
+## Quick Start
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd go-fiber-clean-arch-auth-rbac
-   ```
+1. Clone the repository
 
-2. **Install dependencies**
-   ```bash
-   go mod tidy
-   ```
+```bash
+git clone <repository-url>
+cd go-fiber-clean-arch-auth-rbac
+```
 
-3. **Configure environment**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your database credentials and settings
-   ```
+2. Install dependencies
 
-4. **Run database migrations**
-   ```bash
-   go run ./cmd/migrate/main.go up
-   ```
+```bash
+go mod tidy
+```
 
-5. **Seed database with demo data**
-   ```bash
-   go run ./cmd/seed/main.go
-   ```
+3. Copy the example environment file
 
-6. **Start the development server**
-   ```bash
-   go run ./cmd/api/main.go
-   ```
-   Server runs on `http://localhost:8080`
+```bash
+cp .env.example .env
+```
 
-## 🗄️ Database Management
+Update the values in `.env` for your local PostgreSQL setup, especially:
 
-### Migration Commands
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=your_database
+DB_USERNAME=your_user
+DB_PASSWORD=your_password
+
+JWT_SECRET=replace-with-a-strong-secret
+JWT_REFRESH_SECRET=replace-with-a-strong-refresh-secret
+```
+
+4. Run database migrations
+
+```bash
+go run ./cmd/migrate up
+```
+
+5. Seed demo users, roles, and permissions
+
+```bash
+go run ./cmd/seed/main.go
+```
+
+6. Start the API server
+
+```bash
+go run ./cmd/api/main.go
+```
+
+The server will start on `http://localhost:8080`.
+
+## Environment Variables
+
+The project uses the values from `.env.example` as defaults. The most important ones are:
+
+```env
+APP_NAME=Go App
+APP_ENV=local
+PORT=8080
+
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=database_name
+DB_USERNAME=root
+DB_PASSWORD=
+
+JWT_SECRET=replace-with-a-strong-secret
+JWT_REFRESH_SECRET=replace-with-a-strong-secret-for-refresh-tokens
+
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174,http://localhost:3000
+```
+
+## Database Commands
 
 ```bash
 # Apply all pending migrations
-go run ./cmd/migrate/main.go up
-
-# Drop all tables and recreate from scratch
-go run ./cmd/migrate/main.go fresh
+go run ./cmd/migrate up
 
 # Roll back the latest migration
-go run ./cmd/migrate/main.go down
+go run ./cmd/migrate down
 
-# Check current migration version
-go run ./cmd/migrate/main.go version
+# Drop and recreate everything from scratch
+go run ./cmd/migrate fresh
 
-# Force set migration version
-go run ./cmd/migrate/main.go force <version>
+# Check the current migration version
+go run ./cmd/migrate version
+
+# Force the migration version
+go run ./cmd/migrate force <version>
 ```
 
-### Seeding Commands
+## Seeders
 
 ```bash
 # Insert demo users and RBAC configuration
 go run ./cmd/seed/main.go
 ```
 
-### Debug Commands
+## API Overview
 
-```bash
-# Run general debug operations
-go run ./cmd/debug/main.go
+### Authentication
 
-# Debug login flow with test user
-go run ./cmd/debug-login/main.go
-```
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| POST | `/api/v1/auth/register` | Create a new user |
+| POST | `/api/v1/auth/login` | Authenticate with email and password |
+| POST | `/api/v1/auth/refresh` | Rotate access and refresh tokens |
+| POST | `/api/v1/auth/logout` | Revoke the current refresh token |
+| GET | `/api/v1/me` | Get the authenticated user |
 
-## 🛠️ Development
+### RBAC and Admin Routes
 
-### Build the Application
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/v1/roles` | List all roles |
+| POST | `/api/v1/roles` | Create a role |
+| PUT | `/api/v1/roles/:id` | Update a role |
+| DELETE | `/api/v1/roles/:id` | Delete a role |
+| GET | `/api/v1/permissions` | List all permissions |
+| GET | `/api/v1/logs` | Retrieve request logs |
+| PATCH | `/api/v1/users/:id/role` | Assign a role to a user |
 
-```bash
-# Build for current OS
-go build -o server ./cmd/api/main.go
+## Default Seeded Credentials
 
-# Build for Linux
-GOOS=linux GOARCH=amd64 go build -o server ./cmd/api/main.go
+After running the seed command, the following users are created:
 
-# Build for Windows
-GOOS=windows GOARCH=amd64 go build -o server.exe ./cmd/api/main.go
-```
+| Role | Email | Password |
+| --- | --- | --- |
+| Super Admin | `superadmin@gmail.com` | `Password123!` |
+| Admin | `admin@example.com` | `Password123!` |
+| Customer | `demo@example.com` | `DemoPassword1` |
 
-### Running Tests
-
-```bash
-# Run all tests
-go test ./...
-
-# Run tests with verbose output
-go test -v ./...
-
-# Run tests with coverage
-go test -cover ./...
-
-# Generate coverage report
-go test -coverprofile=coverage.out ./...
-go tool cover -html=coverage.out
-```
-
-### Code Quality
+## Development Commands
 
 ```bash
 # Format code
 go fmt ./...
 
-# Run linter
-go vet ./...
+# Run tests
+go test ./...
 
-# Check for common mistakes
-golangci-lint run
+# Run a specific test package
+go test ./internal/service
+
+# Build the API binary
+go build -o server ./cmd/api/main.go
 ```
 
-## 👥 Default Credentials (After Seeding)
+## Postman
 
-| User Type | Email | Password |
-|-----------|-------|----------|
-| Super Admin | superadmin@gmail.com | Password123! |
-| Admin | admin@example.com | Password123! |
-| Demo | demo@example.com | DemoPassword1 |
-
-## 🔐 Security Features
-
-- **JWT Authentication** - Secure token-based authentication with configurable expiration
-- **Refresh Token Rotation** - Automatic token refresh with secure rotation
-- **Password Hashing** - Bcrypt for secure password storage
-- **CORS Configuration** - Configurable cross-origin resource sharing
-- **Rate Limiting** - Prevent brute force attacks with rate limiting
-- **Request Validation** - Comprehensive input validation and sanitization
-- **Security Headers** - HTTP security headers middleware
-- **Error Handling** - Secure error messages without leaking sensitive information
-
-## 🛡️ Security Scanning & Vulnerability Management
-
-### Running Vulnerability Checks
-
-The project uses `govulncheck` to scan for known vulnerabilities in dependencies and the Go standard library.
-
-```bash
-# Install govulncheck
-go install golang.org/x/vuln/cmd/govulncheck@latest
-
-# Run vulnerability scan
-gvulncheck ./...
-
-# For verbose output
-gvulncheck -show verbose ./...
-```
-
-### Keeping Go Updated
-
-Vulnerabilities in the standard library are patched in Go release updates. Ensure you're running the latest stable version:
-
-```bash
-# Check your current Go version
-go version
-
-# Download latest Go: https://go.dev/dl/
-# Update go.mod to the latest Go version
-# (current: 1.25.11 or higher)
-```
-
-**Note:** This project requires **Go 1.25.11 or higher** to address all standard library vulnerabilities.
-
-### Dependency Vulnerability Management
-
-Regularly update dependencies:
-
-```bash
-# Get latest compatible versions
-go get -u ./...
-
-# Update specific module
-go get -u github.com/module/name
-
-# Clean up
-go mod tidy
-```
-
-### CI/CD Integration
-
-Add to your CI/CD pipeline to catch vulnerabilities automatically:
-
-```yaml
-# GitHub Actions example
-- name: Run Vulnerability Check
-  run: |
-    go install golang.org/x/vuln/cmd/govulncheck@latest
-    govulncheck ./...
-```
-
-## 📁 Project Structure Explanation
-
-```
-internal/
-├── config/         # Configuration management and logger setup
-├── domain/         # Business entities and models
-├── dto/            # Data Transfer Objects with validation rules
-├── handler/        # HTTP request handlers (controllers)
-├── middleware/     # HTTP middleware (logging, RBAC, security)
-├── repository/     # Data access layer (database operations)
-├── router/         # Route definitions and permission mapping
-└── service/        # Business logic layer
-
-cmd/
-├── api/            # Production server entrypoint
-├── migrate/        # Database migration tool
-├── seed/           # Database seeder tool
-├── debug/          # Development debug utilities
-└── debug-login/    # Login flow debugging
-
-database/
-├── migrations/     # SQL migration files with version control
-└── seed/           # Seeders for demo data
-```
-
-## 🚢 Deployment
-
-### Environment Variables
-
-See `.env.example` for all required environment variables:
-
-```bash
-# Core
-PORT=8080
-ENV=production
-
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=password
-DB_NAME=auth_rbac
-
-# JWT
-JWT_SECRET=your-secret-key
-JWT_EXPIRATION=900
-
-# Redis (optional)
-REDIS_URL=localhost:6379
-```
-
-### Building for Production
-
-```bash
-go build -ldflags="-w -s" -o server ./cmd/api/main.go
-```
-
-### Docker Support (if configured)
-
-```bash
-docker build -t go-fiber-auth .
-docker run -p 8080:8080 --env-file .env go-fiber-auth
-```
-
-## 📊 Database Schema
-
-The project includes migrations for:
-
-- **users** - User accounts with credentials
-- **roles** - Role definitions for RBAC
-- **permissions** - Fine-grained permission definitions
-- **user_roles** - User-to-role assignments
-- **role_permissions** - Role-to-permission mappings
-- **refresh_tokens** - Token refresh tracking
-- **logs** - Request/response logging
-
-## 🧪 Testing the API
-
-### Using Postman
-
-Import `postman_collection.json` into Postman to test all endpoints with pre-configured requests.
+Import the provided `postman_collection.json` file into Postman to explore the API with preconfigured requests.
 
 ### Using cURL
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"go-fiber-clean-arch-auth-rbac/internal/config"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

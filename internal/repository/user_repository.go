@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"go-fiber-clean-arch-auth-rbac/internal/domain"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/domain"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -144,4 +144,20 @@ func (r *UserRepository) UpdateRole(ctx context.Context, userID int64, roleID in
 	}
 
 	return nil
+}
+
+func (r *UserRepository) FindAll(ctx context.Context) ([]*domain.User, error) {
+	var users []*domain.User
+	err := r.db.WithContext(ctx).
+		Table("users").
+		Select("users.id, users.name, users.email, users.phone, COALESCE(ur.role_id, 0) AS role_id, COALESCE(r.name, '') AS role_name, users.created_at").
+		Joins("LEFT JOIN user_roles ur ON ur.user_id = users.id").
+		Joins("LEFT JOIN roles r ON r.id = ur.role_id").
+		Order("users.created_at DESC").
+		Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }

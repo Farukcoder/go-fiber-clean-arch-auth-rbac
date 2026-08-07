@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"go-fiber-clean-arch-auth-rbac/internal/config"
-	"go-fiber-clean-arch-auth-rbac/internal/router"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/config"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/router"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -72,26 +72,27 @@ func upsertRole(db *sql.DB, role seedRole) (int64, error) {
 func upsertPermission(db *sql.DB, permission router.PermissionDefinition) (int64, error) {
 	var id int64
 	err := db.QueryRow(`
-		INSERT INTO permissions (name, method, path, description)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO permissions (name, module, method, path, description)
+		VALUES ($1, $2, $3, $4, $5)
 		ON CONFLICT (name) DO UPDATE SET
+			module = EXCLUDED.module,
 			method = EXCLUDED.method,
 			path = EXCLUDED.path,
 			description = EXCLUDED.description,
 			updated_at = NOW()
 		RETURNING id
-	`, permission.Name, permission.Method, permission.Path, permission.Description).Scan(&id)
+	`, permission.Name, permission.Module, permission.Method, permission.Path, permission.Description).Scan(&id)
 	return id, err
 }
 
 func syncRolePermissions(db *sql.DB, roleIDs map[string]int64, permissionIDs map[string]int64) error {
-	adminPermissions := []string{
-		"user:me",
+	superAdminOnlyPermissions := []string{
 		"log:list",
 		"role:list",
 		"role:create",
 		"role:update",
 		"role:delete",
+		"role:permissions:list",
 		"permission:list",
 		"permission:create",
 		"permission:update",
@@ -99,12 +100,42 @@ func syncRolePermissions(db *sql.DB, roleIDs map[string]int64, permissionIDs map
 		"role_permission:assign",
 		"role_permission:revoke",
 		"user:assign_role",
+		"user:list",
+	}
+	adminPermissions := []string{
+		"user:me",
+		"category:list",
+		"category:create",
+		"category:update",
+		"category:delete",
+		"subcategory:list",
+		"subcategory:create",
+		"subcategory:update",
+		"subcategory:delete",
+		"product:list",
+		"product:create",
+		"product:update",
+		"product:delete",
+		"product_variant:list",
+		"product_variant:create",
+		"product_variant:update",
+		"product_variant:delete",
+		"stock:list",
+		"stock:update",
+		"stock_movement:list",
+		"stock_movement:create",
+		"setting:list",
+		"setting:update",
+		"dashboard:stats",
 	}
 	customerPermissions := []string{
 		"user:me",
 	}
 
 	if err := assignAll(db, roleIDs["super_admin"], permissionIDs); err != nil {
+		return err
+	}
+	if err := assignSubset(db, roleIDs["super_admin"], permissionIDs, superAdminOnlyPermissions); err != nil {
 		return err
 	}
 	if err := assignSubset(db, roleIDs["admin"], permissionIDs, adminPermissions); err != nil {

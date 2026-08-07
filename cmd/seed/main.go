@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"go-fiber-clean-arch-auth-rbac/database/seed/seeders"
-	"go-fiber-clean-arch-auth-rbac/internal/config"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/database/seed/seeders"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/config"
 )
 
 func main() {

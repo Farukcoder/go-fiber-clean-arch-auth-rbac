@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"go-fiber-clean-arch-auth-rbac/internal/config"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/config"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"golang.org/x/crypto/bcrypt"
 )

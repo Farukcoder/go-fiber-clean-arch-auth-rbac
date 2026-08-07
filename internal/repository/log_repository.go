@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"go-fiber-clean-arch-auth-rbac/internal/domain"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/domain"
 	"gorm.io/gorm"
 )
 

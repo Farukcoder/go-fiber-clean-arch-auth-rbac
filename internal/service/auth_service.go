@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"time"
 
-	"go-fiber-clean-arch-auth-rbac/internal/domain"
-	"go-fiber-clean-arch-auth-rbac/internal/dto"
-	"go-fiber-clean-arch-auth-rbac/internal/repository"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/domain"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/dto"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/repository"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -204,6 +204,28 @@ func (s *AuthService) GetUserByID(ctx context.Context, id int) (*dto.UserRespons
 		RoleID:   user.RoleID,
 		RoleName: user.RoleName,
 	}, nil
+}
+
+func (s *AuthService) GetAllUsers(ctx context.Context) ([]*dto.UserResponse, error) {
+	users, err := s.userRepo.FindAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var userResponses []*dto.UserResponse
+	for _, user := range users {
+		userResponses = append(userResponses, &dto.UserResponse{
+			ID:        user.ID,
+			Name:      user.Name,
+			Email:     user.Email,
+			Phone:     user.Phone,
+			RoleID:    user.RoleID,
+			RoleName:  user.RoleName,
+			CreatedAt: user.CreatedAt,
+		})
+	}
+
+	return userResponses, nil
 }
 
 func (s *AuthService) findUserByIdentifier(ctx context.Context, identifier string) (*domain.User, error) {

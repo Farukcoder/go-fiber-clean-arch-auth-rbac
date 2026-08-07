@@ -3,15 +3,17 @@ package main
 import (
 	"context"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"time"
 
-	"go-fiber-clean-arch-auth-rbac/database"
-	"go-fiber-clean-arch-auth-rbac/internal/config"
-	"go-fiber-clean-arch-auth-rbac/internal/handler"
-	"go-fiber-clean-arch-auth-rbac/internal/middleware"
-	"go-fiber-clean-arch-auth-rbac/internal/repository"
-	"go-fiber-clean-arch-auth-rbac/internal/router"
-	"go-fiber-clean-arch-auth-rbac/internal/service"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/database"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/config"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/handler"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/middleware"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/repository"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/router"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/service"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -49,7 +51,7 @@ func main() {
 	}
 	rbacService.StartAutoReload(context.Background(), 5*time.Minute)
 	authService := service.NewAuthService(userRepo, rbacRepo, refreshTokenRepo, cfg.JwtSecret, cfg.JwtRefreshSecret)
-	authHandler := handler.NewAuthHandler(authService)
+	authHandler := handler.NewAuthHandler(authService, rbacService)
 	logsHandler := handler.NewLogsHandler(requestLogRepo)
 	rbacHandler := handler.NewRBACHandler(rbacService)
 
@@ -57,6 +59,18 @@ func main() {
 	app.Use(middleware.CORS(cfg.AllowedOrigins))
 	app.Use(middleware.SecurityHeaders(cfg.AppEnv))
 	app.Use(middleware.RequestLogger(requestLogRepo))
+
+	uploadsDir, err := filepath.Abs(filepath.Join("storage", "uploads"))
+	if err != nil {
+		slog.Error("Failed to resolve uploads path", "error", err)
+		return
+	}
+	if err := os.MkdirAll(uploadsDir, 0o755); err != nil {
+		slog.Error("Failed to create uploads directory", "error", err)
+		return
+	}
+
+	app.Static("/uploads", uploadsDir)
 	router.Setup(app, authHandler, logsHandler, rbacHandler, rbacService, cfg)
 
 	slog.Info("Server starting", "port", cfg.Port)

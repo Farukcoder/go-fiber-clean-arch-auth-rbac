@@ -21,6 +21,7 @@ type UpdateRoleInput struct {
 // CreatePermissionInput is the request body for creating a permission.
 type CreatePermissionInput struct {
 	Name        string `json:"name"`
+	Module      string `json:"module"`
 	Method      string `json:"method"`
 	Path        string `json:"path"`
 	Description string `json:"description"`
@@ -29,6 +30,7 @@ type CreatePermissionInput struct {
 // UpdatePermissionInput is the request body for updating a permission.
 type UpdatePermissionInput struct {
 	Name        string `json:"name"`
+	Module      string `json:"module"`
 	Method      string `json:"method"`
 	Path        string `json:"path"`
 	Description string `json:"description"`

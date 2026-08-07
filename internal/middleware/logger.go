@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"go-fiber-clean-arch-auth-rbac/internal/domain"
-	"go-fiber-clean-arch-auth-rbac/internal/repository"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/domain"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/repository"
 
 	"github.com/gofiber/fiber/v2"
 )

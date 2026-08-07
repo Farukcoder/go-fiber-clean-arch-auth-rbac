@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"go-fiber-clean-arch-auth-rbac/database"
-	"go-fiber-clean-arch-auth-rbac/internal/config"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/database"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/config"
 )
 
 func main() {

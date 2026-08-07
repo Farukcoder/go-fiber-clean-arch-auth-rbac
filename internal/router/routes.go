@@ -1,10 +1,10 @@
 package router
 
 import (
-	"go-fiber-clean-arch-auth-rbac/internal/config"
-	"go-fiber-clean-arch-auth-rbac/internal/handler"
-	"go-fiber-clean-arch-auth-rbac/internal/middleware"
-	"go-fiber-clean-arch-auth-rbac/internal/service"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/config"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/handler"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/middleware"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/service"
 
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
@@ -12,6 +12,8 @@ import (
 )
 
 func Setup(app *fiber.App, authHandler *handler.AuthHandler, logsHandler *handler.LogsHandler, rbacHandler *handler.RBACHandler, rbacService *service.RBACService, cfg *config.Config) {
+	// Update auth handler with rbac service if not already set
+	// This is handled in main.go during initialization
 	api := app.Group("/api/v1")
 	auth := api.Group("/auth", middleware.AuthRateLimiter())
 	auth.Post("/login", authHandler.Login)
@@ -35,12 +37,14 @@ func Setup(app *fiber.App, authHandler *handler.AuthHandler, logsHandler *handle
 	}))
 	protected.Use(rbacService.Middleware())
 	protected.Get("/me", authHandler.Me)
+	protected.Get("/users", authHandler.GetAllUsers)
 	protected.Get("/logs", logsHandler.GetAll)
 
 	protected.Get("/roles", rbacHandler.ListRoles)
 	protected.Post("/roles", rbacHandler.CreateRole)
 	protected.Put("/roles/:id", rbacHandler.UpdateRole)
 	protected.Delete("/roles/:id", rbacHandler.DeleteRole)
+	protected.Get("/roles/:id/permissions", rbacHandler.GetRolePermissions)
 	protected.Get("/permissions", rbacHandler.ListPermissions)
 	protected.Post("/permissions", rbacHandler.CreatePermission)
 	protected.Put("/permissions/:id", rbacHandler.UpdatePermission)
@@ -48,4 +52,5 @@ func Setup(app *fiber.App, authHandler *handler.AuthHandler, logsHandler *handle
 	protected.Post("/roles/:id/permissions", rbacHandler.AssignPermissionToRole)
 	protected.Delete("/roles/:id/permissions/:permission_id", rbacHandler.RevokePermissionFromRole)
 	protected.Patch("/users/:id/role", rbacHandler.AssignRoleToUser)
+	protected.Get("/me/permissions", rbacHandler.GetUserPermissions)
 }

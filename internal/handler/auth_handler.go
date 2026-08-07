@@ -3,21 +3,24 @@ package handler
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"strconv"
 
-	"go-fiber-clean-arch-auth-rbac/internal/dto"
-	"go-fiber-clean-arch-auth-rbac/internal/service"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/domain"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/dto"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/service"
 	"github.com/gofiber/fiber/v2"
 	jwt "github.com/golang-jwt/jwt/v5"
 )
 
 type AuthHandler struct {
-	service *service.AuthService
+	service     *service.AuthService
+	rbacService *service.RBACService
 }
 
-func NewAuthHandler(service *service.AuthService) *AuthHandler {
-	return &AuthHandler{service: service}
+func NewAuthHandler(service *service.AuthService, rbacService *service.RBACService) *AuthHandler {
+	return &AuthHandler{service: service, rbacService: rbacService}
 }
 
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
@@ -123,7 +126,46 @@ func (h *AuthHandler) Me(c *fiber.Ctx) error {
 		return c.Status(http.StatusNotFound).JSON(response)
 	}
 
-	response := dto.SuccessResponse(http.StatusOK, "User retrieved successfully", user)
+	// Get user's role permissions
+	roleID, err := claimAsInt64(claims["role_id"])
+	if err != nil {
+		roleID = user.RoleID
+	}
+
+	slog.Info("Fetching permissions for user", "user_id", userID, "role_id", roleID)
+
+	permissions, err := h.rbacService.GetRolePermissions(context.Background(), roleID)
+	if err != nil {
+		slog.Error("Error fetching permissions", "role_id", roleID, "error", err)
+		// If permissions can't be loaded, return empty array
+		permissions = []domain.Permission{}
+	}
+
+	slog.Info("Permissions fetched", "role_id", roleID, "count", len(permissions))
+
+	// Combine user data with permissions
+	userData := map[string]interface{}{
+		"id":          user.ID,
+		"name":        user.Name,
+		"email":       user.Email,
+		"phone":       user.Phone,
+		"role_id":     user.RoleID,
+		"role_name":   user.RoleName,
+		"permissions": permissions,
+	}
+
+	response := dto.SuccessResponse(http.StatusOK, "User retrieved successfully", userData)
+	return c.Status(http.StatusOK).JSON(response)
+}
+
+func (h *AuthHandler) GetAllUsers(c *fiber.Ctx) error {
+	users, err := h.service.GetAllUsers(context.Background())
+	if err != nil {
+		response := dto.ErrorResponse(http.StatusInternalServerError, "Failed to retrieve users", nil)
+		return c.Status(http.StatusInternalServerError).JSON(response)
+	}
+
+	response := dto.SuccessResponse(http.StatusOK, "Users retrieved successfully", users)
 	return c.Status(http.StatusOK).JSON(response)
 }
 

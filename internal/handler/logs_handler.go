@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"go-fiber-clean-arch-auth-rbac/internal/dto"
-	"go-fiber-clean-arch-auth-rbac/internal/repository"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/dto"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/repository"
 	"github.com/gofiber/fiber/v2"
 )
 

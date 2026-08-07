@@ -29,7 +29,7 @@ func SecurityHeaders(appEnv string) fiber.Handler {
 func CORS(allowedOrigins string) fiber.Handler {
 	if allowedOrigins == "" || allowedOrigins == "*" {
 		// Fallback defaults for safety, but typically overridden by config
-		allowedOrigins = "http://localhost:3000,http://localhost:5173"
+		allowedOrigins = "http://localhost:3000,http://localhost:5173,http://localhost:5174"
 	}
 
 	return cors.New(cors.Config{

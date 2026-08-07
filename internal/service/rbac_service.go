@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"go-fiber-clean-arch-auth-rbac/internal/domain"
-	"go-fiber-clean-arch-auth-rbac/internal/repository"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/domain"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/repository"
 	"github.com/gofiber/fiber/v2"
 	jwt "github.com/golang-jwt/jwt/v5"
 )
@@ -258,6 +258,77 @@ func (s *RBACService) AssignRoleToUser(ctx context.Context, userID int64, roleID
 		return err
 	}
 	return s.Reload(ctx)
+}
+
+func (s *RBACService) GetRolePermissions(ctx context.Context, roleID int64) ([]domain.Permission, error) {
+	// Fetch permissions directly from database to ensure up-to-date data
+	permissions, err := s.repo.GetPermissionsByRoleID(ctx, roleID)
+	if err != nil {
+		slog.Error("RBAC: Failed to fetch permissions from database", "role_id", roleID, "error", err)
+		return []domain.Permission{}, err
+	}
+
+	slog.Info("RBAC: GetRolePermissions returned from database",
+		"role_id", roleID,
+		"count", len(permissions),
+	)
+
+	// If no permissions found in database, return empty array
+	if len(permissions) == 0 {
+		slog.Warn("RBAC: No permissions found for role in database", "role_id", roleID)
+		return []domain.Permission{}, nil
+	}
+
+	return permissions, nil
+}
+
+func (s *RBACService) getDefaultPermissionsForRole(roleName string) []domain.Permission {
+	// Define default permissions for each role type
+	defaultPermissions := map[string][]string{
+		"superadmin": {
+			"view_dashboard", "view_products", "view_categories", "view_subcategories",
+			"view_stock", "manage_roles", "manage_permissions", "manage_user_roles", "manage_settings",
+		},
+		"admin": {
+			"view_dashboard", "view_products", "view_categories", "view_subcategories",
+			"view_stock", "manage_roles", "manage_permissions", "manage_user_roles", "manage_settings",
+		},
+		"manager": {
+			"view_dashboard", "view_products", "view_categories", "view_subcategories",
+			"view_stock", "manage_settings",
+		},
+		"staff": {
+			"view_dashboard", "view_products", "view_stock",
+		},
+		"customer": {
+			"view_dashboard",
+		},
+	}
+
+	permissionNames, ok := defaultPermissions[roleName]
+	if !ok {
+		// If role not found, return minimal permissions
+		return []domain.Permission{}
+	}
+
+	s.mu.RLock()
+	snapshot := s.snapshot
+	s.mu.RUnlock()
+
+	// Convert permission names to Permission objects from the snapshot
+	var result []domain.Permission
+	permissionNameSet := make(map[string]bool)
+	for _, name := range permissionNames {
+		permissionNameSet[name] = true
+	}
+
+	for _, permission := range snapshot.allRules {
+		if permissionNameSet[permission.Name] {
+			result = append(result, permission)
+		}
+	}
+
+	return result
 }
 
 func routeRegistered(permissions []domain.Permission, method string, actualPath string) bool {

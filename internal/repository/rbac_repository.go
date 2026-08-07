@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"go-fiber-clean-arch-auth-rbac/internal/domain"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/domain"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -101,12 +101,12 @@ func (r *RBACRepository) FindPermissionByName(ctx context.Context, name string) 
 }
 
 func (r *RBACRepository) CreatePermission(ctx context.Context, input domain.Permission) (*domain.Permission, error) {
-	permission := &domain.Permission{Name: strings.TrimSpace(input.Name), Method: input.Method, Path: input.Path, Description: input.Description}
+	permission := &domain.Permission{Name: strings.TrimSpace(input.Name), Module: strings.TrimSpace(input.Module), Method: input.Method, Path: input.Path, Description: input.Description}
 	err := r.db.WithContext(ctx).
 		Table("permissions").
 		Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "name"}},
-			DoUpdates: clause.Assignments(map[string]any{"method": input.Method, "path": input.Path, "description": input.Description, "updated_at": time.Now().UTC()}),
+			DoUpdates: clause.Assignments(map[string]any{"module": strings.TrimSpace(input.Module), "method": input.Method, "path": input.Path, "description": input.Description, "updated_at": time.Now().UTC()}),
 		}).
 		Create(permission).Error
 	return permission, err
@@ -114,7 +114,7 @@ func (r *RBACRepository) CreatePermission(ctx context.Context, input domain.Perm
 
 func (r *RBACRepository) UpdatePermission(ctx context.Context, id int64, input domain.Permission) (*domain.Permission, error) {
 	result := r.db.WithContext(ctx).Table("permissions").Where("id = ?", id).
-		Updates(map[string]any{"name": strings.TrimSpace(input.Name), "method": input.Method, "path": input.Path, "description": input.Description, "updated_at": time.Now().UTC()})
+		Updates(map[string]any{"name": strings.TrimSpace(input.Name), "module": strings.TrimSpace(input.Module), "method": input.Method, "path": input.Path, "description": input.Description, "updated_at": time.Now().UTC()})
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -158,6 +158,18 @@ func (r *RBACRepository) LoadRolePermissionDetails(ctx context.Context) ([]RoleP
 		ORDER BY r.id ASC, p.id ASC
 	`).Scan(&details).Error
 	return details, err
+}
+
+func (r *RBACRepository) GetPermissionsByRoleID(ctx context.Context, roleID int64) ([]domain.Permission, error) {
+	var permissions []domain.Permission
+	err := r.db.WithContext(ctx).Raw(`
+		SELECT p.id, p.name, p.method, p.path, p.description, p.created_at, p.updated_at
+		FROM role_permissions rp
+		JOIN permissions p ON p.id = rp.permission_id
+		WHERE rp.role_id = ?
+		ORDER BY p.id ASC
+	`, roleID).Scan(&permissions).Error
+	return permissions, err
 }
 
 func (r *RBACRepository) AssignRoleToUser(ctx context.Context, userID int64, roleID int64) error {

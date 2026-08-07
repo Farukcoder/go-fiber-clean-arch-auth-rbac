@@ -3,7 +3,7 @@ package service
 import (
 	"testing"
 
-	"go-fiber-clean-arch-auth-rbac/internal/domain"
+	"github.com/Farukcoder/go-fiber-clean-arch-auth-rbac/internal/domain"
 )
 
 func TestRBACService_Allowed(t *testing.T) {
