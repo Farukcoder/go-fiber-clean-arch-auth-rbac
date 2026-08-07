@@ -17,6 +17,7 @@ func PermissionDefinitions() []PermissionDefinition {
 		{Name: "auth:refresh", Module: "AUTH", Method: "POST", Path: "/api/v1/auth/refresh", Description: "Refresh access token"},
 		{Name: "auth:logout", Module: "AUTH", Method: "POST", Path: "/api/v1/auth/logout", Description: "Logout user"},
 		{Name: "user:me", Module: "USERS", Method: "GET", Path: "/api/v1/me", Description: "Get current user"},
+		{Name: "user:me_permissions", Module: "USERS", Method: "GET", Path: "/api/v1/me/permissions", Description: "Get current user's permissions"},
 		{Name: "user:list", Module: "USERS", Method: "GET", Path: "/api/v1/users", Description: "List all users"},
 		{Name: "log:list", Module: "SYSTEM", Method: "GET", Path: "/api/v1/logs", Description: "List request logs"},
 		{Name: "role:list", Module: "RBAC", Method: "GET", Path: "/api/v1/roles", Description: "List roles"},
